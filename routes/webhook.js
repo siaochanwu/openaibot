@@ -2,14 +2,13 @@ require('dotenv').config();
 var express = require('express');
 var router = express.Router();
 const line = require('@line/bot-sdk');
-const axios = require('axios').default;
 const { Configuration, OpenAIApi } = require("openai");
-const {CHANNEL_ACCESS_TOKEN, OPENAI_URL, OPENAI_KEY} = process.env;
+const {CHANNEL_ACCESS_TOKEN, OPENAI_KEY} = process.env;
 
 
 router.post('/line', async (req, res, next) => {
   const client = new line.Client({
-    channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN
+    channelAccessToken: CHANNEL_ACCESS_TOKEN
   });
 
   res.status(200).send('connect');
