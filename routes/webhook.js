@@ -1,9 +1,10 @@
 require('dotenv').config();
-var express = require('express');
-var router = express.Router();
+const axios = require('axios');
+const express = require('express');
+const router = express.Router();
 const line = require('@line/bot-sdk');
 const { Configuration, OpenAIApi } = require("openai");
-const {CHANNEL_ACCESS_TOKEN, OPENAI_KEY} = process.env;
+const {CHANNEL_ACCESS_TOKEN, OPENAI_KEY, USER_ID} = process.env;
 
 
 router.post('/line', async (req, res, next) => {
@@ -11,7 +12,10 @@ router.post('/line', async (req, res, next) => {
     channelAccessToken: CHANNEL_ACCESS_TOKEN
   });
 
-  res.status(200).send('connect');
+  if (!req.body.events[0]) {
+    res.status(200).send('connect');
+    return
+  }
 
   const configuration = new Configuration({
     apiKey: OPENAI_KEY,
@@ -29,25 +33,25 @@ router.post('/line', async (req, res, next) => {
       const response = await openai.createCompletion({
         model: 'text-davinci-003',
         prompt: message.text.trim(),
-        max_tokens: 4000,
+        max_tokens: 2048,
         temperature: 0,
       });
-      console.log(response.data);
+      console.log(response.data.choices[0].text);
+      const data = {
+        type: 'text',
+        text: response.data.choices[0].text
+      };
+      //line reply
+      client.pushMessage(USER_ID, data)
+      .then(() => {
+        console.log('success')
+      })
+      .catch((err) => {
+          throw err
+      });
     } catch (error) {
-      if (error.response) {
-        console.log(error.response.status);
-        console.log(error.response.data);
-      } else {
-        console.log(error.message);
-      }
-    }
-
-    //line reply
-    try {
-      await client.replyMessage(event.replyToken, response.data.choices[0].text);
-    } catch (err) {
-      console.log(err)
-      throw err
+      console.log(error);
+      throw error
     }
   }
 })
