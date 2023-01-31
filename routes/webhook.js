@@ -41,8 +41,9 @@ router.post('/line', async (req, res, next) => {
         type: 'text',
         text: response.data.choices[0].text
       };
+      
       //line reply
-      client.pushMessage(USER_ID, data)
+      client.replyMessage(event.replyToken, data)
       .then(() => {
         console.log('success')
       })
